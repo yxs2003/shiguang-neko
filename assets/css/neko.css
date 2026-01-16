@@ -1,17 +1,18 @@
-/* Shiguang Neko v4.9 - CSS */
+/* Shiguang Neko v5.0 - CSS */
 
+/* 宠物根容器 */
 #sgn-pet-root {
     position: fixed;
-    z-index: 99999;
+    z-index: 99999; /* 确保在最上层 */
     width: 64px;
     height: 64px;
     bottom: 0;
     left: 20px;
     cursor: grab;
-    image-rendering: pixelated;
+    image-rendering: pixelated; /* 像素化渲染，防止模糊 */
     user-select: none;
     -webkit-user-drag: none;
-    /* touch-action: none;  <-- 移除这行，因为它会完全阻止移动端滚动页面。我们只在JS中按需阻止。 */
+    /* touch-action: none;  已移除，防止移动端无法滚动页面 */
     will-change: left, bottom, transform;
 }
 
@@ -20,13 +21,14 @@
     transition: none !important;
 }
 
+/* 移动端隐藏 (如果开启设置) */
 @media screen and (max-width: 768px) {
     #sgn-pet-root.sgn-hide-mobile {
         display: none !important;
     }
 }
 
-/* Flipper */
+/* 翻转层 (用于左右转向) */
 #sgn-pet-flipper {
     width: 100%;
     height: 100%;
@@ -35,19 +37,21 @@
     pointer-events: none;
 }
 
+/* 身体层 (用于动作动画) */
 #sgn-pet-body {
     width: 100%;
     height: 100%;
     pointer-events: none;
 }
 
+/* SVG 样式 */
 .sgn-pixel-svg {
     width: 100%;
     height: 100%;
     filter: drop-shadow(0 4px 2px rgba(0, 0, 0, 0.3));
 }
 
-/* 幽灵透明度 */
+/* 幽灵模式透明度 */
 .sgn-model-ghost {
     opacity: 0.9;
 }
@@ -56,7 +60,7 @@
     opacity: 0.7;
 }
 
-/* 气泡 */
+/* 气泡样式 */
 #sgn-pet-msg {
     position: absolute;
     bottom: 85px;
@@ -76,6 +80,7 @@
     z-index: 100001;
 }
 
+/* 气泡小三角 */
 #sgn-pet-msg:after {
     content: "";
     position: absolute;
@@ -87,11 +92,11 @@
     border-bottom: 0;
 }
 
+/* 气泡位置控制 */
 #sgn-pet-msg.sgn-bubble-center {
     left: 50%;
     transform: translateX(-50%);
 }
-
 #sgn-pet-msg.sgn-bubble-center:after {
     left: 50%;
     transform: translateX(-50%);
@@ -102,7 +107,6 @@
     transform: none;
     border-bottom-left-radius: 0;
 }
-
 #sgn-pet-msg.sgn-bubble-left:after {
     left: 15px;
 }
@@ -113,7 +117,6 @@
     transform: none;
     border-bottom-right-radius: 0;
 }
-
 #sgn-pet-msg.sgn-bubble-right:after {
     right: 15px;
 }
@@ -123,7 +126,7 @@
     bottom: 80px;
 }
 
-/* 睡眠 */
+/* 睡眠 Zzz 动画 */
 #sgn-pet-sleep {
     position: absolute;
     left: 50%;
@@ -144,19 +147,9 @@
 }
 
 @keyframes sgn-zzz {
-    0% {
-        transform: translate(-50%, 10px) scale(0.5);
-        opacity: 0;
-    }
-
-    50% {
-        opacity: 1;
-    }
-
-    100% {
-        transform: translate(-20%, -30px) scale(1.2);
-        opacity: 0;
-    }
+    0% { transform: translate(-50%, 10px) scale(0.5); opacity: 0; }
+    50% { opacity: 1; }
+    100% { transform: translate(-20%, -30px) scale(1.2); opacity: 0; }
 }
 
 #sgn-pet-root.sleeping #sgn-pet-body {
@@ -165,7 +158,7 @@
     transition: transform 0.5s;
 }
 
-/* 道具 & 特效 */
+/* 道具 & 特效层 */
 #sgn-toy-layer,
 #sgn-effect-layer {
     position: fixed;
@@ -177,7 +170,7 @@
     overflow: hidden;
 }
 
-/* 增加层级，防止被页脚遮挡 */
+/* 确保道具不被遮挡 */
 #sgn-toy-layer {
     z-index: 100000;
 }
@@ -206,189 +199,46 @@
     height: 30px;
 }
 
-/* Glitch */
+/* 屏幕故障特效 */
 body.sgn-glitch-active {
     animation: sgn-glitch 0.2s infinite;
 }
 
 @keyframes sgn-glitch {
-    0% {
-        transform: translate(0);
-        filter: hue-rotate(0deg);
-    }
-
-    25% {
-        transform: translate(-2px, 2px);
-        filter: hue-rotate(90deg);
-    }
-
-    50% {
-        transform: translate(2px, -2px);
-        filter: invert(0.1);
-    }
-
-    75% {
-        transform: translate(-2px, -2px);
-    }
-
-    100% {
-        transform: translate(0);
-        filter: none;
-    }
+    0% { transform: translate(0); filter: hue-rotate(0deg); }
+    25% { transform: translate(-2px, 2px); filter: hue-rotate(90deg); }
+    50% { transform: translate(2px, -2px); filter: invert(0.1); }
+    75% { transform: translate(-2px, -2px); }
+    100% { transform: translate(0); filter: none; }
 }
 
-/* Animations */
-@keyframes sgn-float {
+/* 基础动画库 */
+@keyframes sgn-float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+@keyframes sgn-walk-bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
+@keyframes sgn-tail { 0%,100%{transform:rotate(0)} 50%{transform:rotate(12deg)} }
+@keyframes sgn-head { 0%,100%{transform:translateY(0)} 50%{transform:translateY(2px)} }
+@keyframes sgn-blink { 0%,92%,100%{transform:scaleY(1)} 94%{transform:scaleY(0.1)} }
+@keyframes sgn-shake { 0%,100%{transform:rotate(0)} 25%{transform:rotate(15deg)} 75%{transform:rotate(-15deg)} }
 
-    0%,
-    100% {
-        transform: translateY(0)
-    }
+/* 动作动画 */
+.sgn-act-sit { animation: sgn-sit 1s forwards; }
+@keyframes sgn-sit { to { transform: translateY(8px) scaleY(0.85) } }
 
-    50% {
-        transform: translateY(-8px)
-    }
-}
+.sgn-act-spin { animation: sgn-spin 0.8s linear; }
+@keyframes sgn-spin { to { transform: rotate(360deg) } }
 
-@keyframes sgn-walk-bounce {
+.sgn-act-jump { animation: sgn-jump 0.6s ease; }
+@keyframes sgn-jump { 40% { transform: translateY(-20px) } }
 
-    0%,
-    100% {
-        transform: translateY(0)
-    }
+.sgn-act-stretch { animation: sgn-stretch 1s ease; }
+@keyframes sgn-stretch { 50% { transform: scaleX(1.2) translateY(2px) } }
 
-    50% {
-        transform: translateY(-3px)
-    }
-}
+.sgn-act-eat { animation: sgn-eat 0.8s infinite; transform-origin: center bottom; }
+@keyframes sgn-eat { 0%,100% { transform: rotate(0) translateY(0) } 50% { transform: rotate(10deg) translateY(4px) } }
 
-@keyframes sgn-tail {
-
-    0%,
-    100% {
-        transform: rotate(0)
-    }
-
-    50% {
-        transform: rotate(12deg)
-    }
-}
-
-@keyframes sgn-head {
-
-    0%,
-    100% {
-        transform: translateY(0)
-    }
-
-    50% {
-        transform: translateY(2px)
-    }
-}
-
-@keyframes sgn-blink {
-
-    0%,
-    92%,
-    100% {
-        transform: scaleY(1)
-    }
-
-    94% {
-        transform: scaleY(0.1)
-    }
-}
-
-@keyframes sgn-shake {
-
-    0%,
-    100% {
-        transform: rotate(0)
-    }
-
-    25% {
-        transform: rotate(15deg)
-    }
-
-    75% {
-        transform: rotate(-15deg)
-    }
-}
-
-/* 动作类 */
-.sgn-act-sit {
-    animation: sgn-sit 1s forwards;
-}
-
-@keyframes sgn-sit {
-    to {
-        transform: translateY(8px) scaleY(0.85)
-    }
-}
-
-.sgn-act-spin {
-    animation: sgn-spin 0.8s linear;
-}
-
-@keyframes sgn-spin {
-    to {
-        transform: rotate(360deg)
-    }
-}
-
-.sgn-act-jump {
-    animation: sgn-jump 0.6s ease;
-}
-
-@keyframes sgn-jump {
-    40% {
-        transform: translateY(-20px)
-    }
-}
-
-.sgn-act-stretch {
-    animation: sgn-stretch 1s ease;
-}
-
-@keyframes sgn-stretch {
-    50% {
-        transform: scaleX(1.2) translateY(2px)
-    }
-}
-
-.sgn-act-eat {
-    animation: sgn-eat 0.8s infinite;
-    transform-origin: center bottom;
-}
-
-@keyframes sgn-eat {
-
-    0%,
-    100% {
-        transform: rotate(0) translateY(0)
-    }
-
-    50% {
-        transform: rotate(10deg) translateY(4px)
-    }
-}
-
-#sgn-pet-root .sgn-tail {
-    animation: sgn-tail 2s infinite ease-in-out;
-}
-
-#sgn-pet-root.sgn-model-pigeon .sgn-head {
-    animation: sgn-head 1s infinite;
-}
-
-#sgn-pet-root .sgn-eyes {
-    animation: sgn-blink 3.5s infinite;
-}
-
-.sgn-model-ghost #sgn-pet-body {
-    animation: sgn-float 3s infinite ease-in-out;
-}
-
-#sgn-pet-root.sgn-falling #sgn-pet-body {
-    animation: sgn-shake 0.3s infinite !important;
-}
+/* 绑定默认动画 */
+#sgn-pet-root .sgn-tail { animation: sgn-tail 2s infinite ease-in-out; }
+#sgn-pet-root.sgn-model-pigeon .sgn-head { animation: sgn-head 1s infinite; }
+#sgn-pet-root .sgn-eyes { animation: sgn-blink 3.5s infinite; }
+.sgn-model-ghost #sgn-pet-body { animation: sgn-float 3s infinite ease-in-out; }
+#sgn-pet-root.sgn-falling #sgn-pet-body { animation: sgn-shake 0.3s infinite !important; }
