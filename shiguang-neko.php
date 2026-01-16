@@ -2,8 +2,8 @@
 /**
  * Plugin Name: Shiguang Neko (时光宠物)
  * Plugin URI:  https://www.shiguang.ink/
- * Description: 史诗级像素互动宠物：v5.0 响应式后台，全参数调节，极致交互体验。
- * Version:     5.0.0
+ * Description: 像素互动宠物插件：v4.9.2 响应式后台，全参数调节，极致交互体验。
+ * Version:     4.9.2
  * Author:      Shiguang
  * License:     GPL2
  */
@@ -12,7 +12,7 @@
 if (!defined('ABSPATH')) exit;
 
 // 定义版本号和路径常量
-define('SGN_VERSION', '5.0.0');
+define('SGN_VERSION', '4.9.2');
 
 // ==========================================
 // 1. 默认配置 (Default Options)
