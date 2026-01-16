@@ -24,7 +24,7 @@
     function recordInput() { PET.lastInputTime = now(); }
 
     function say(text, duration) {
-        if (!text) return; // 如果文本为空，直接不说话
+        if (!text) return;
         duration = duration || 3000;
         PET.$msg.html(String(text)).removeClass('sgn-bubble-left sgn-bubble-right sgn-bubble-center');
         const rect = PET.$root[0].getBoundingClientRect();
@@ -67,18 +67,10 @@
     function shouldSleep() {
         if (!f.enableSleep || PET.state === 'DRAG' || PET.state === 'FALL') return false;
         const h = new Date().getHours();
-
-        // 使用配置的睡眠时间
         const start = cfg.sleepStart ?? 23;
         const end = cfg.sleepEnd ?? 6;
         let isSleepTime = false;
-
-        if (start > end) { // 跨天，例如 23点到 6点
-            isSleepTime = (h >= start || h < end);
-        } else { // 当天，例如 1点到 5点
-            isSleepTime = (h >= start && h < end);
-        }
-
+        if (start > end) { isSleepTime = (h >= start || h < end); } else { isSleepTime = (h >= start && h < end); }
         return isSleepTime || (now() - PET.lastInputTime > (cfg.idleSleepMs || 300000));
     }
 
@@ -103,14 +95,15 @@
         const c = e.touches ? e.touches[0] : e;
         const r = PET.$root[0].getBoundingClientRect();
         drag.x = c.clientX; drag.y = c.clientY; drag.t = now(); drag.ox = c.clientX - r.left; drag.oy = c.clientY - r.top;
-        if (!e.touches) e.preventDefault();
+        // 注意：这里去掉了 preventDefault，否则移动端无法触发 click 事件，导致无法喂食。
+        // 只有当确定是拖拽(move)时才 preventDefault。
     }
     function onMove(e) {
         recordInput(); if (!drag.active) return;
         const c = e.touches ? e.touches[0] : e;
         if (PET.state === 'DRAG') {
             PET.$root.css({ left: c.clientX - drag.ox, top: c.clientY - drag.oy, bottom: 'auto' });
-            if (e.cancelable && e.touches) e.preventDefault();
+            if (e.cancelable && e.touches) e.preventDefault(); // 阻止滚动
             return;
         }
         if (Math.sqrt(Math.pow(c.clientX - drag.x, 2) + Math.pow(c.clientY - drag.y, 2)) > 5 && f.enableDrag) {
@@ -127,14 +120,16 @@
             PET.posY = clamp($(window).height() - r.bottom, 0, $(window).height() - PET.h);
             PET.$root.css({ top: 'auto', bottom: PET.posY, left: PET.posX });
             PET.velY = 0; requestAnimationFrame(physicsLoop);
-        } else handleClick();
+        } else {
+            // 没有发生拖拽，则视为点击
+            handleClick();
+        }
     }
 
     function handleClick() {
         if (PET.state !== 'IDLE') return;
         if (f.enableToy && Math.random() < (cfg.toyChance || 0.65)) { dropToy(); return; }
         if (f.enableAttack && now() - PET.lastAttackTime > 30000 && Math.random() < (cfg.attackChance || 0.05)) { triggerAttack(); return; }
-
         sayRandom();
         PET.$body.addClass('sgn-act-jump'); setTimeout(() => PET.$body.removeClass('sgn-act-jump'), 600);
     }
@@ -185,12 +180,29 @@
         say(label + '！是我的！', 1500);
 
         const winW = $(window).width();
-        const winH = $(window).height();
+        // 修复1: 使用 innerHeight 替代 $(window).height() 以适应安卓地址栏
+        const winH = window.innerHeight; 
         const tx = clamp(Math.random() * (winW - 100), 0, winW - 40);
 
+        // 修复1续: 使用 calc 计算确切底部，避免计算误差导致的悬空
         PET.$toy.css({ left: tx, top: -50, display: 'block' }).animate({ top: winH - 40 }, 600, 'swing', () => {
             PET.state = 'IDLE';
-            walkTo(tx, PET.isGhost ? 1.5 : 2.5, () => {
+            
+            // 修复2: 进食错位修复
+            // 获取宠物当前位置
+            const currentX = parseFloat(PET.$root.css('left')) || 0;
+            // 如果食物在右边，宠物应该停在食物左侧一点 (头部朝右)
+            // 如果食物在左边，宠物应该停在食物右侧一点 (头部朝左)
+            let stopX = tx;
+            if (tx > currentX) {
+                // 向右跑，停在食物左边，让头部覆盖食物
+                stopX = tx - 30; 
+            } else {
+                // 向左跑，停在食物右边
+                stopX = tx + 10;
+            }
+
+            walkTo(stopX, PET.isGhost ? 1.5 : 2.5, () => {
                 PET.state = 'CHASE';
                 PET.$body.addClass('sgn-act-eat');
                 setTimeout(() => {
@@ -230,7 +242,6 @@
         if (PET.state !== 'IDLE') return;
         if (shouldSleep()) { enterSleep(); return; }
         const r = Math.random();
-
         if (Math.random() < (cfg.actionChance || 0)) {
             const acts = ['sit', 'spin', 'jump', 'stretch'];
             const act = acts[Math.floor(Math.random() * acts.length)];
@@ -238,7 +249,6 @@
             setTimeout(() => { PET.$body.removeClass('sgn-act-' + act); scheduleNext(); }, 1000);
             return;
         }
-
         if (r < 0.4) {
             walkTo(Math.random() * ($(window).width() - 100), 1, () => {
                 if (Math.random() < 0.3) sayRandom();
@@ -253,13 +263,16 @@
 
     // --- Listeners ---
 
-    // 1. 离屏吐槽 (自定义文案)
+    // 修复3: 标题恢复逻辑修复
     if (f.enableVisibility) {
         let originTitle = document.title;
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) {
-                originTitle = document.title;
-                document.title = txt.titleLost || '🥺 人呢？';
+                // 在修改标题前，只有当当前标题不是插件设置的标题时，才保存
+                if (document.title !== (txt.titleLost || '🥺 人呢？去哪了？') && document.title !== (txt.titleBack || '🎉 欢迎回来！')) {
+                    originTitle = document.title;
+                }
+                document.title = txt.titleLost || '🥺 人呢？去哪了？';
             } else {
                 document.title = txt.titleBack || '🎉 欢迎回来！';
                 setTimeout(() => { document.title = originTitle; }, 2000);
@@ -268,7 +281,6 @@
         });
     }
 
-    // 2. 滚动
     if (f.enableScroll) {
         let stT;
         $(window).on('scroll', () => {
@@ -285,7 +297,6 @@
         });
     }
 
-    // 3. 伴读
     if (f.enableReading) {
         $(document).on('mouseenter', 'a,p', function () {
             if (PET.state !== 'IDLE') return;
@@ -305,13 +316,10 @@
     $(function () {
         if (PET.isGhost) { PET.posY = PET.floatHeight; PET.$root.css('bottom', PET.posY); }
         setFacing('left');
-
-        // 4. 时间段问候
         const h = new Date().getHours();
         if (h >= 6 && h < 11 && txt.morning) say(txt.morning, 4000);
         else if (h >= 11 && h < 14 && txt.noon) say(txt.noon, 4000);
         else if (h >= 20 && h < 24 && txt.night) say(txt.night, 4000);
-
         scheduleNext(1000, 2000);
     });
 })(jQuery);
