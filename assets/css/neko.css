@@ -1,4 +1,4 @@
-/* Shiguang Neko v4.8 - CSS */
+/* Shiguang Neko v4.9 - CSS */
 
 #sgn-pet-root {
     position: fixed;
@@ -11,7 +11,7 @@
     image-rendering: pixelated;
     user-select: none;
     -webkit-user-drag: none;
-    touch-action: none;
+    /* touch-action: none;  <-- 移除这行，因为它会完全阻止移动端滚动页面。我们只在JS中按需阻止。 */
     will-change: left, bottom, transform;
 }
 
@@ -177,12 +177,13 @@
     overflow: hidden;
 }
 
+/* 增加层级，防止被页脚遮挡 */
 #sgn-toy-layer {
-    z-index: 99998;
+    z-index: 100000;
 }
 
 #sgn-effect-layer {
-    z-index: 100000;
+    z-index: 100001;
     display: none;
 }
 
@@ -190,7 +191,7 @@
     position: fixed;
     width: 32px;
     height: 32px;
-    z-index: 99998;
+    z-index: 100000;
     display: none;
     image-rendering: pixelated;
     filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.2));
